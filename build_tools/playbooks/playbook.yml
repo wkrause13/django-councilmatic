@@ -1,0 +1,50 @@
+---
+- name: Setup Postgres
+  hosts: all
+  sudo: True
+  tasks:
+    - name: upgrade system
+      apt: upgrade=dist update_cache=yes
+    - apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+    - apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+    - name: install postgresql-9.4 
+      apt: name=postgresql-9.4 update_cache=yes force=yes
+    - name: install list of packages for project
+      apt: pkg={{item}}
+      with_items:
+        - git
+        - libpq-dev
+        - tree
+        - nginx
+        - python-psycopg2
+        - python-pip
+    - name: create postgres user called codeformiami
+      become: yes
+      become_user: postgres
+      postgresql_user: name=codeformiami password=code4miami role_attr_flags=SUPERUSER
+    - name: create mia_councilmatic db
+      become: yes
+      become_user: postgres
+      postgresql_db: name=mia_councilmatic owner=codeformiami encoding='UTF-8'
+    - postgresql_privs: >
+        db=mia_councilmatic
+        privs=ALL
+        type=database
+        role=codeformiami
+      become: yes
+      become_user: postgres
+    - name: clone repo
+      git: repo=https://github.com/Code-for-Miami/miami-dade-councilmatic.git dest=/home/vagrant/miami-dade-councilmatic
+    - name: install virtualenv
+      pip: name=virtualenv
+    - name: Manually create the initial virtualenv
+      command: virtualenv /home/vagrant/miami-dade-councilmatic/venv -p python3.4 creates="/home/vagrant/miami-dade-councilmatic/venv"
+    - name: Install django-councilmatic
+      pip: 
+        name: 'git+https://github.com/datamade/django-councilmatic.git#egg=django-councilmatic==0.51'
+        virtualenv: /home/vagrant/miami-dade-councilmatic/venv
+    - name: Install gunicorn
+      pip: 
+        name: 'gunicorn'
+        virtualenv: /home/vagrant/miami-dade-councilmatic/venv
+
