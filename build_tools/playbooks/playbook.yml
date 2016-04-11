@@ -18,6 +18,7 @@
         - nginx
         - python-psycopg2
         - python-pip
+        - openjdk-7-jre-headless
     - name: create postgres user called codeformiami
       become: yes
       become_user: postgres
@@ -47,4 +48,6 @@
       pip: 
         name: 'gunicorn'
         virtualenv: /home/vagrant/miami-dade-councilmatic/venv
+    - name: Install Solr
+      apt: 
 
