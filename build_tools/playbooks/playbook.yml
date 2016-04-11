@@ -48,6 +48,3 @@
       pip: 
         name: 'gunicorn'
         virtualenv: /home/vagrant/miami-dade-councilmatic/venv
-    - name: Install Solr
-      apt: 
-
